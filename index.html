@@ -1,0 +1,357 @@
+import React, { useState, useEffect } from 'react';
+import { 
+  Printer, Plus, Trash2, LayoutGrid, List, Settings, 
+  Search, FileText, CheckCircle, Edit3, User, 
+  Menu, X, Eye, ChevronLeft, Save
+} from 'lucide-react';
+
+// 模版資料庫
+const MASTER_TEMPLATES = [
+  { id: 97, type: 'yansheng', name: '四聯祈福小牌位', size: '190x280mm', color: '#e53e3e', previewColor: '#fff5f5' },
+  { id: 82, type: 'wangsheng', name: '往生蓮位', size: '125x364mm', color: '#d69e2e', previewColor: '#fffef0' },
+  { id: 98, type: 'shuwen', name: '往生牒殼', size: '128x390mm', color: '#d69e2e', previewColor: '#fffef0' },
+  { id: 102, type: 'shuwen', name: '水陸往生牒心', size: '297x420mm', color: '#4a5568', previewColor: '#ffffff' },
+  { id: 99, type: 'yansheng', name: '延生牒殼', size: '125x390mm', color: '#e53e3e', previewColor: '#fff5f5' },
+  { id: 110, type: 'shuwen', name: '化解太歲祈福文疏', size: '210x297mm', color: '#e53e3e', previewColor: '#ffffff' },
+];
+
+const App = () => {
+  const [view, setView] = useState('grid'); 
+  const [records, setRecords] = useState([]);
+  const [activeTemplate, setActiveTemplate] = useState(MASTER_TEMPLATES[5]);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false); // 控制手機端導航
+  const [editorTab, setEditorTab] = useState('form'); // 手機端編輯器切換：'form' 或 'preview'
+  const [formData, setFormData] = useState({
+    id: '', name: '', address: '', lunarDate: '甲辰年', lunarMonth: '正月', 
+    lunarDay: '初一', zodiac: '龍', wish: '消災解厄，吉祥如意', offerer: '信士張某某', status: 'pending'
+  });
+
+  useEffect(() => {
+    const saved = localStorage.getItem('ritual_pro_records_v4');
+    if (saved) setRecords(JSON.parse(saved));
+  }, []);
+
+  const handleCreate = (template) => {
+    setActiveTemplate(template);
+    setFormData({ ...formData, id: Date.now(), name: '', status: 'pending' });
+    setView('editor');
+    setEditorTab('form'); // 預設先看表單
+    setIsSidebarOpen(false);
+  };
+
+  const handleSave = () => {
+    if (!formData.name) return;
+    const newRecords = [formData, ...records.filter(r => r.id !== formData.id)];
+    setRecords(newRecords);
+    localStorage.setItem('ritual_pro_records_v4', JSON.stringify(newRecords));
+    setView('list');
+  };
+
+  const deleteRecord = (id) => {
+    const updated = records.filter(r => r.id !== id);
+    setRecords(updated);
+    localStorage.setItem('ritual_pro_records_v4', JSON.stringify(updated));
+  };
+
+  const printDocument = () => {
+    window.print();
+  };
+
+  // --- 畫面組件 ---
+
+  const SidebarContent = () => (
+    <div className="flex flex-col h-full">
+      <div className="h-16 flex items-center px-6 bg-[#002140] shrink-0">
+        <div className="w-8 h-8 bg-blue-500 rounded flex items-center justify-center text-white font-bold shadow-lg shadow-blue-500/50">禪</div>
+        <span className="ml-3 text-white font-bold tracking-wider">疏文管理中心</span>
+      </div>
+      <nav className="flex-1 py-6 px-3 space-y-1 overflow-y-auto">
+        <button 
+          onClick={() => { setView('grid'); setIsSidebarOpen(false); }} 
+          className={`w-full flex items-center px-4 py-3 rounded-lg transition-all ${view === 'grid' ? 'text-white bg-blue-600' : 'hover:bg-white/5 hover:text-gray-200'}`}
+        >
+          <LayoutGrid className="w-5 h-5" /> <span className="ml-4 font-medium">模版中心</span>
+        </button>
+        <button 
+          onClick={() => { setView('list'); setIsSidebarOpen(false); }} 
+          className={`w-full flex items-center px-4 py-3 rounded-lg transition-all ${view === 'list' ? 'text-white bg-blue-600' : 'hover:bg-white/5 hover:text-gray-200'}`}
+        >
+          <List className="w-5 h-5" /> <span className="ml-4 font-medium">歷史紀錄</span>
+        </button>
+        <div className="my-6 border-t border-gray-700/50 mx-4"></div>
+        <button className="w-full flex items-center px-4 py-3 rounded-lg hover:bg-white/5 hover:text-gray-200">
+          <User className="w-5 h-5" /> <span className="ml-4 font-medium">帳號設定</span>
+        </button>
+        <button className="w-full flex items-center px-4 py-3 rounded-lg hover:bg-white/5 hover:text-gray-200">
+          <Settings className="w-5 h-5" /> <span className="ml-4 font-medium">系統參數</span>
+        </button>
+      </nav>
+      <div className="p-6 text-[10px] text-gray-500 uppercase tracking-widest border-t border-gray-700/30 shrink-0">
+        Digital Temple System<br/>v2.5.0 Mobile Ready
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="min-h-screen bg-[#f0f2f5] flex text-gray-800 relative overflow-hidden">
+      
+      {/* 桌面版導航 (lg) */}
+      <aside className="hidden lg:flex w-64 bg-[#001529] text-gray-400 flex-col shrink-0 print:hidden">
+        <SidebarContent />
+      </aside>
+
+      {/* 手機版導航抽屜 (Overlay) */}
+      <div className={`lg:hidden fixed inset-0 z-[100] transition-opacity duration-300 ${isSidebarOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsSidebarOpen(false)}></div>
+        <div className={`absolute left-0 top-0 bottom-0 w-72 bg-[#001529] shadow-2xl transition-transform duration-300 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+          <button className="absolute right-4 top-4 text-white/50" onClick={() => setIsSidebarOpen(false)}><X className="w-6 h-6" /></button>
+          <SidebarContent />
+        </div>
+      </div>
+
+      <div className="flex-1 flex flex-col h-screen overflow-hidden">
+        
+        {/* 頂部標題欄 */}
+        <header className="h-16 bg-white border-b flex items-center justify-between px-4 md:px-8 shrink-0 print:hidden">
+          <div className="flex items-center gap-3">
+            <button 
+              className="lg:hidden p-2 hover:bg-gray-100 rounded-lg text-gray-600" 
+              onClick={() => setIsSidebarOpen(true)}
+            >
+              <Menu className="w-6 h-6" />
+            </button>
+            <div className="hidden sm:flex items-center text-sm text-gray-500">
+              <LayoutGrid className="w-4 h-4 mr-2" />
+              系統主頁 / {view === 'grid' ? '模版列表' : view === 'editor' ? '內容編輯' : '歷史紀錄'}
+            </div>
+            <div className="sm:hidden font-bold text-gray-800">
+              {view === 'grid' ? '模版中心' : view === 'editor' ? '內容編輯' : '歷史紀錄'}
+            </div>
+          </div>
+          <div className="flex items-center gap-2 sm:gap-6">
+             <div className="relative hidden md:block">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input type="text" placeholder="快速搜尋..." className="pl-10 pr-4 py-2 border border-gray-200 rounded-full text-sm bg-gray-50 outline-none w-48 xl:w-64" />
+             </div>
+             <div className="flex items-center gap-2 sm:gap-3 sm:border-l sm:pl-6">
+                <div className="text-right hidden sm:block">
+                   <p className="text-xs font-bold text-gray-700">管理員</p>
+                   <p className="text-[10px] text-green-500 font-bold">ONLINE</p>
+                </div>
+                <div className="w-9 h-9 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold shadow-sm">A</div>
+             </div>
+          </div>
+        </header>
+
+        {/* 主要內容區域 */}
+        <main className="flex-1 overflow-y-auto bg-[#f0f2f5] relative">
+          
+          {/* 模版網格 - 響應式 */}
+          {view === 'grid' && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 p-4 md:p-6">
+              {MASTER_TEMPLATES.map(t => (
+                <div key={t.id} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-all group active:scale-[0.98]">
+                  <div 
+                    className="h-32 sm:h-48 flex items-center justify-center relative cursor-pointer"
+                    style={{ backgroundColor: t.previewColor }}
+                    onClick={() => handleCreate(t)}
+                  >
+                    <div className="border-2 border-dashed border-gray-300 w-12 h-24 sm:w-16 sm:h-32 flex flex-col items-center justify-center group-hover:border-blue-400">
+                       <FileText className="w-5 h-5 text-gray-300 mb-1" />
+                       <span className="text-[8px] text-gray-400">PREVIEW</span>
+                    </div>
+                  </div>
+                  <div className="p-3 sm:p-4 border-t">
+                    <h3 className="font-bold text-gray-800 text-sm sm:text-base mb-3 truncate">{t.name}</h3>
+                    <button onClick={() => handleCreate(t)} className="w-full bg-slate-800 text-white text-xs font-bold py-2 rounded-lg hover:bg-blue-600 flex items-center justify-center gap-2">
+                      <Plus className="w-3.5 h-3.5" /> 選用模版
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* 紀錄列表 - 手機端自動滾動表格 */}
+          {view === 'list' && (
+            <div className="p-4 md:p-6">
+              <div className="bg-white rounded-xl shadow-sm border overflow-x-auto">
+                <table className="w-full text-left min-w-[600px]">
+                  <thead className="bg-gray-50 border-b">
+                    <tr>
+                      <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase">編號</th>
+                      <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase">對象/生肖</th>
+                      <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase">日期</th>
+                      <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase text-right">操作</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {records.map(r => (
+                      <tr key={r.id} className="hover:bg-blue-50/30">
+                        <td className="px-6 py-4 text-xs font-mono text-gray-400">#{r.id.toString().slice(-6)}</td>
+                        <td className="px-6 py-4">
+                          <div className="font-bold text-gray-800">{r.name}</div>
+                          <div className="text-[10px] text-gray-400">屬{r.zodiac} / {r.offerer}</div>
+                        </td>
+                        <td className="px-6 py-4 text-xs text-gray-600">{r.lunarDate}{r.lunarMonth}{r.lunarDay}</td>
+                        <td className="px-6 py-4 text-right">
+                          <div className="flex justify-end gap-1">
+                            <button onClick={() => { setFormData(r); setView('editor'); setEditorTab('form'); }} className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg"><Edit3 className="w-4 h-4" /></button>
+                            <button onClick={() => deleteRecord(r.id)} className="p-2 text-red-400 hover:bg-red-50 rounded-lg"><Trash2 className="w-4 h-4" /></button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                {records.length === 0 && <div className="py-20 text-center text-gray-400 text-sm">尚無列印歷史紀錄</div>}
+              </div>
+            </div>
+          )}
+
+          {/* 編輯器 - 手機端分頁切換 */}
+          {view === 'editor' && (
+            <div className="flex flex-col lg:flex-row h-full overflow-hidden">
+              
+              {/* 手機端的分頁切換按鈕 */}
+              <div className="lg:hidden flex border-b bg-white print:hidden">
+                <button 
+                  className={`flex-1 py-3 text-sm font-bold border-b-2 transition-colors ${editorTab === 'form' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-400'}`}
+                  onClick={() => setEditorTab('form')}
+                >
+                  <Edit3 className="w-4 h-4 inline-block mr-1" /> 內容編輯
+                </button>
+                <button 
+                  className={`flex-1 py-3 text-sm font-bold border-b-2 transition-colors ${editorTab === 'preview' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-400'}`}
+                  onClick={() => setEditorTab('preview')}
+                >
+                  <Eye className="w-4 h-4 inline-block mr-1" /> 查看預覽
+                </button>
+              </div>
+
+              {/* 左側：表單 */}
+              <div className={`w-full lg:w-[400px] bg-white border-r flex flex-col shrink-0 print:hidden ${editorTab === 'form' ? 'block' : 'hidden lg:block'}`}>
+                <div className="p-4 border-b bg-gray-50/50 flex items-center justify-between">
+                  <button onClick={() => setView('grid')} className="text-sm text-gray-500 hover:text-blue-600 flex items-center"><ChevronLeft className="w-4 h-4" /> 返回</button>
+                  <div className="flex gap-2">
+                    <button onClick={handleSave} className="p-2 bg-emerald-500 text-white rounded-lg"><Save className="w-5 h-5" /></button>
+                    <button onClick={printDocument} className="p-2 bg-blue-600 text-white rounded-lg"><Printer className="w-5 h-5" /></button>
+                  </div>
+                </div>
+                <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
+                  <div className="space-y-4">
+                    <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest border-b pb-2">疏文內容設定</h3>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-[10px] font-bold text-gray-500 mb-1">對象姓名</label>
+                        <input type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full p-2 bg-gray-50 border rounded-lg outline-none text-sm" />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-bold text-gray-500 mb-1">生肖</label>
+                        <select value={formData.zodiac} onChange={e => setFormData({...formData, zodiac: e.target.value})} className="w-full p-2 bg-gray-50 border rounded-lg text-sm">
+                          {['鼠','牛','虎','兔','龍','蛇','馬','羊','猴','雞','狗','豬'].map(z => <option key={z} value={z}>{z}</option>)}
+                        </select>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-gray-500 mb-1">日期 (年/月/日)</label>
+                      <div className="flex gap-1">
+                        <input type="text" value={formData.lunarDate} onChange={e => setFormData({...formData, lunarDate: e.target.value})} className="w-1/3 p-2 bg-gray-50 border rounded-lg text-sm" />
+                        <input type="text" value={formData.lunarMonth} onChange={e => setFormData({...formData, lunarMonth: e.target.value})} className="w-1/3 p-2 bg-gray-50 border rounded-lg text-sm" />
+                        <input type="text" value={formData.lunarDay} onChange={e => setFormData({...formData, lunarDay: e.target.value})} className="w-1/3 p-2 bg-gray-50 border rounded-lg text-sm" />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-gray-500 mb-1">詳細地址</label>
+                      <textarea value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})} rows="2" className="w-full p-2 bg-gray-50 border rounded-lg text-sm" />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-gray-500 mb-1">祈願事項</label>
+                      <input type="text" value={formData.wish} onChange={e => setFormData({...formData, wish: e.target.value})} className="w-full p-2 bg-gray-50 border rounded-lg text-sm" />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-gray-500 mb-1">供養人</label>
+                      <input type="text" value={formData.offerer} onChange={e => setFormData({...formData, offerer: e.target.value})} className="w-full p-2 bg-gray-50 border rounded-lg text-sm" />
+                    </div>
+                  </div>
+                  {/* 手機端特別增加一個按鈕導向預覽 */}
+                  <button onClick={() => setEditorTab('preview')} className="lg:hidden w-full py-3 bg-gray-100 text-gray-600 rounded-xl font-bold text-sm">點擊查看預覽效果</button>
+                </div>
+              </div>
+
+              {/* 右側：預覽區 */}
+              <div className={`flex-1 bg-slate-200 overflow-auto p-4 sm:p-10 flex justify-center items-start print:p-0 print:bg-white ${editorTab === 'preview' ? 'block' : 'hidden lg:flex'}`}>
+                <div 
+                  className="bg-white shadow-2xl relative print:shadow-none origin-top sm:origin-center scale-[0.45] sm:scale-75 md:scale-90 lg:scale-100 transition-transform duration-300" 
+                  style={{ width: '210mm', height: '297mm', padding: '15mm', minWidth: '210mm' }}
+                >
+                  <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 210 297">
+                    <rect x="5" y="5" width="200" height="287" fill="none" stroke="#8B0000" strokeWidth="0.5" />
+                    <rect x="8" y="8" width="194" height="281" fill="none" stroke="#8B0000" strokeWidth="1.5" />
+                    <g transform="translate(165, 45)" opacity="0.6">
+                       <rect x="0" y="0" width="25" height="25" fill="none" stroke="#ff0000" strokeWidth="1.2" />
+                       <text x="12.5" y="10" textAnchor="middle" fill="#ff0000" fontSize="5" fontWeight="bold">佛法</text>
+                       <text x="12.5" y="18" textAnchor="middle" fill="#ff0000" fontSize="5" fontWeight="bold">僧寶</text>
+                    </g>
+                  </svg>
+                  <div className="relative h-full w-full flex flex-row-reverse justify-between items-start text-black" 
+                       style={{ writingMode: 'vertical-rl', fontFamily: '"Noto Serif TC", serif' }}>
+                    <div className="flex flex-col items-center mx-6">
+                      <h1 className="text-4xl font-black border-2 border-black p-2 mt-4 leading-none tracking-widest">{activeTemplate?.name}</h1>
+                    </div>
+                    <div className="flex-1 flex flex-row-reverse items-start px-10 py-6 gap-10">
+                      <div className="flex flex-col gap-2">
+                        <p className="text-xl font-bold">伏以</p>
+                        <p className="text-sm leading-8">神威廣大，恩光普照。今有居住於：</p>
+                        <p className="text-sm leading-8 underline decoration-red-500 underline-offset-8 italic">{formData.address || '____________________'}</p>
+                        <p className="text-sm leading-8">
+                           弟子 <span className="text-3xl font-black mx-2 border-b-2 border-red-500">{formData.name || '姓名'}</span> 
+                           ，生於 <span className="underline font-bold">{formData.lunarDate}</span> 年 <span className="underline">{formData.lunarMonth}</span> 月 <span className="underline">{formData.lunarDay}</span> 日，屬 <span className="font-bold">{formData.zodiac}</span>。
+                        </p>
+                      </div>
+                      <div className="flex flex-col gap-2 pt-16">
+                        <p className="text-sm leading-8 italic underline">祈求 {formData.wish}</p>
+                        <p className="text-sm leading-8">百災消除，千祥雲集。家門平安，萬事如意。</p>
+                      </div>
+                      <div className="flex flex-col gap-2 pt-32 items-end">
+                        <p className="text-xs opacity-40">謹疏以聞</p>
+                        <div className="mt-12 flex flex-col items-center">
+                          <p className="text-sm">弟子：<span className="text-2xl font-black">{formData.offerer}</span> 叩拜</p>
+                          <p className="text-xs mt-6 text-gray-400">{formData.lunarDate} {formData.lunarMonth} {formData.lunarDay}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          )}
+        </main>
+      </div>
+
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;700;900&display=swap');
+        
+        @media print {
+          @page { size: A4; margin: 0; }
+          body { background: white !important; }
+          header, aside, .print\\:hidden { display: none !important; }
+          main { padding: 0 !important; margin: 0 !important; overflow: visible !important; }
+          .flex-1 { width: 100% !important; padding: 0 !important; height: auto !important; }
+          .bg-white.shadow-2xl { 
+            position: absolute !important; top: 0 !important; left: 0 !important; 
+            box-shadow: none !important; margin: 0 !important; transform: none !important;
+          }
+        }
+
+        /* 隱藏捲軸 */
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 10px; }
+      `}</style>
+    </div>
+  );
+};
+
+export default App;
+
