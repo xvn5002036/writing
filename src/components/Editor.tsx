@@ -25,6 +25,9 @@ export default function Editor({
     handleSave,
     printDoc,
 }: EditorProps) {
+    // 編輯器左側面版的展開與收合狀態 (桌面版)
+    const [isFormOpen, setIsFormOpen] = React.useState(true);
+
     if (!activeTemplate) return null;
 
     return (
@@ -49,17 +52,26 @@ export default function Editor({
 
             {/* --- 編輯區：左側面板 --- */}
             <div
-                className={`w-full lg:w-[420px] xl:w-[460px] bg-white border-r border-gray-200 flex flex-col shrink-0 print-hidden h-full ${editorTab === 'form' ? 'flex' : 'hidden lg:flex'
-                    }`}
+                className={`bg-white border-r border-gray-200 flex flex-col shrink-0 print-hidden h-full transition-[width,transform,opacity] duration-300 ease-in-out ${editorTab === 'form' ? 'flex w-full' : 'hidden lg:flex'
+                    } ${isFormOpen ? 'lg:w-[420px] xl:w-[460px] translate-x-0 opacity-100' : 'lg:w-0 -translate-x-full opacity-0 overflow-hidden'}`}
             >
                 {/* 操作列 */}
-                <div className="p-4 border-b bg-gray-50 flex justify-between items-center shrink-0">
-                    <button
-                        onClick={() => setView('grid')}
-                        className="text-sm text-gray-500 hover:text-blue-600 flex items-center font-medium bg-white px-3 py-1.5 rounded-lg border shadow-sm"
-                    >
-                        <ChevronLeft className="w-4 h-4 mr-1" /> 返回模版
-                    </button>
+                <div className="p-4 border-b bg-gray-50 flex justify-between items-center shrink-0 w-[420px] xl:w-[460px]">
+                    <div className="flex gap-2">
+                        <button
+                            onClick={() => setView('grid')}
+                            className="text-sm text-gray-500 hover:text-blue-600 flex items-center font-medium bg-white px-3 py-1.5 rounded-lg border shadow-sm"
+                        >
+                            <ChevronLeft className="w-4 h-4 mr-1" /> 返回模版
+                        </button>
+                        <button
+                            onClick={() => setIsFormOpen(false)}
+                            className="hidden lg:flex text-sm text-gray-500 hover:text-red-600 items-center font-medium bg-white px-3 py-1.5 rounded-lg border shadow-sm"
+                            title="收起編輯面板"
+                        >
+                            <ChevronLeft className="w-4 h-4 mr-1" /> 收起
+                        </button>
+                    </div>
                     <div className="flex gap-2">
                         <button
                             onClick={handleSave}
@@ -79,7 +91,7 @@ export default function Editor({
                 </div>
 
                 {/* 滾動表單區 */}
-                <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-8 bg-white pb-24 lg:pb-6">
+                <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-8 bg-white pb-24 lg:pb-6 w-[420px] xl:w-[460px]">
                     <section className="space-y-4">
                         <h4 className="text-xs font-black text-gray-400 uppercase tracking-widest border-b pb-2 flex items-center gap-2">
                             <UserCheck className="w-4 h-4" /> 核心資料
@@ -185,9 +197,20 @@ export default function Editor({
 
             {/* --- 預覽區：右側面板 (高保真 SVG 渲染) --- */}
             <div
-                className={`flex-1 bg-[#d1d5db] overflow-auto p-4 sm:p-10 flex justify-center items-start print:p-0 print:bg-white relative ${editorTab === 'preview' ? 'flex' : 'hidden lg:flex'
+                className={`flex-1 bg-[#d1d5db] overflow-auto p-4 sm:p-10 flex justify-center items-start print:p-0 print:bg-white relative transition-all duration-300 ease-in-out ${editorTab === 'preview' ? 'flex' : 'hidden lg:flex'
                     }`}
             >
+                {/* 桌面版專用的「展開面板」懸浮按鈕 (只有當面板收合時顯示) */}
+                {!isFormOpen && (
+                    <button
+                        onClick={() => setIsFormOpen(true)}
+                        className="hidden lg:flex absolute left-0 top-1/2 -translate-y-1/2 bg-white/90 backdrop-blur border border-l-0 border-gray-300 text-gray-700 p-2 py-4 rounded-r-xl shadow-lg hover:bg-white hover:text-blue-600 hover:pl-3 transition-all z-20 group"
+                        title="展開編輯面板"
+                    >
+                        <ChevronLeft className="w-6 h-6 rotate-180 group-hover:scale-110 transition-transform" />
+                    </button>
+                )}
+
                 {/* A4 畫布與透過 Tailwind 斷點自動縮放邏輯 */}
                 <div
                     className="bg-white shadow-2xl relative print-area origin-top transition-transform duration-300 mx-auto transform scale-[0.45] sm:scale-[0.65] lg:scale-[0.85] xl:scale-100"

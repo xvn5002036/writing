@@ -13,8 +13,11 @@ export default function App() {
   const [records, setRecords] = useState<any[]>([]);
   const [activeTemplate, setActiveTemplate] = useState<Template | null>(MASTER_TEMPLATES[5]);
 
-  // 手機端專用狀態
+  // 手機版專用狀態
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  // 桌面版專用狀態
+  const [isDesktopSidebarOpen, setIsDesktopSidebarOpen] = useState(true);
+
   const [editorTab, setEditorTab] = useState('form');
 
   // 表單資料狀態
@@ -92,11 +95,17 @@ export default function App() {
         setView={setView}
         isSidebarOpen={isSidebarOpen}
         setIsSidebarOpen={setIsSidebarOpen}
+        isDesktopSidebarOpen={isDesktopSidebarOpen}
       />
 
       {/* --- 主內容區 --- */}
       <div className="flex-1 flex flex-col h-screen overflow-hidden w-full relative">
-        <Header view={view} setIsSidebarOpen={setIsSidebarOpen} />
+        <Header
+          view={view}
+          setIsSidebarOpen={setIsSidebarOpen}
+          isDesktopSidebarOpen={isDesktopSidebarOpen}
+          setIsDesktopSidebarOpen={setIsDesktopSidebarOpen}
+        />
 
         {/* 動態內容視圖 */}
         <main className="flex-1 overflow-y-auto w-full relative">

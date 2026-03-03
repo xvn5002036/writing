@@ -8,35 +8,48 @@ interface SidebarProps {
     setView: (v: string) => void;
     isSidebarOpen: boolean;
     setIsSidebarOpen: (v: boolean) => void;
+    isDesktopSidebarOpen: boolean;
 }
 
-export default function Sidebar({ view, setView, isSidebarOpen, setIsSidebarOpen }: SidebarProps) {
-    const NavItem = ({ icon: Icon, label, target }: { icon: any; label: string; target: string }) => (
-        <button
-            onClick={() => {
-                setView(target);
-                setIsSidebarOpen(false);
-            }}
-            className={`w-full flex items-center px-4 py-3 rounded-lg transition-all mb-1 ${view === target ? 'text-white bg-blue-600 shadow-md shadow-blue-600/30 font-bold' : 'text-gray-400 hover:bg-white/5 hover:text-gray-200'
-                }`}
-        >
-            <Icon className="w-5 h-5" />
-            <span className="ml-4 text-sm">{label}</span>
-        </button>
-    );
+interface NavItemProps {
+    icon: any;
+    label: string;
+    target: string;
+    view: string;
+    setView: (v: string) => void;
+    setIsSidebarOpen: (v: boolean) => void;
+}
 
+const NavItem = ({ icon: Icon, label, target, view, setView, setIsSidebarOpen }: NavItemProps) => (
+    <button
+        onClick={() => {
+            setView(target);
+            setIsSidebarOpen(false);
+        }}
+        className={`w-full flex items-center px-4 py-3 rounded-lg transition-all mb-1 ${view === target ? 'text-white bg-blue-600 shadow-md shadow-blue-600/30 font-bold' : 'text-gray-400 hover:bg-white/5 hover:text-gray-200'
+            }`}
+    >
+        <Icon className="w-5 h-5" />
+        <span className="ml-4 text-sm">{label}</span>
+    </button>
+);
+
+export default function Sidebar({ view, setView, isSidebarOpen, setIsSidebarOpen, isDesktopSidebarOpen }: SidebarProps) {
     return (
         <>
             {/* --- 左側：專業深色側邊欄 (桌面版) --- */}
-            <aside className="hidden lg:flex w-[260px] bg-[#001529] flex-col shrink-0 print-hidden z-20 shadow-xl">
-                <div className="h-16 flex items-center px-6 bg-[#002140] border-b border-gray-800 shrink-0">
+            <aside
+                className={`hidden lg:flex bg-[#001529] flex-col shrink-0 print-hidden z-20 shadow-xl transition-[width] duration-300 ease-in-out ${isDesktopSidebarOpen ? 'w-[260px]' : 'w-0 overflow-hidden'
+                    }`}
+            >
+                <div className="h-16 flex items-center px-6 bg-[#002140] border-b border-gray-800 shrink-0 w-[260px]">
                     <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded flex items-center justify-center text-white font-black shadow-lg shadow-blue-500/50">禪</div>
                     <span className="ml-3 text-white font-bold tracking-widest text-sm">疏文管理中心 Pro</span>
                 </div>
                 <nav className="flex-1 py-6 px-3 overflow-y-auto">
                     <div className="text-[10px] font-bold text-gray-500 uppercase tracking-widest px-4 mb-2">系統模組</div>
-                    <NavItem icon={LayoutGrid} label="模版中心" target="grid" />
-                    <NavItem icon={List} label="歷史紀錄" target="list" />
+                    <NavItem icon={LayoutGrid} label="模版中心" target="grid" view={view} setView={setView} setIsSidebarOpen={setIsSidebarOpen} />
+                    <NavItem icon={List} label="歷史紀錄" target="list" view={view} setView={setView} setIsSidebarOpen={setIsSidebarOpen} />
 
                     <div className="my-6 border-t border-gray-700/50 mx-4"></div>
 
@@ -70,8 +83,8 @@ export default function Sidebar({ view, setView, isSidebarOpen, setIsSidebarOpen
                         </button>
                     </div>
                     <nav className="flex-1 py-4 px-3 overflow-y-auto">
-                        <NavItem icon={LayoutGrid} label="模版中心" target="grid" />
-                        <NavItem icon={List} label="歷史紀錄" target="list" />
+                        <NavItem icon={LayoutGrid} label="模版中心" target="grid" view={view} setView={setView} setIsSidebarOpen={setIsSidebarOpen} />
+                        <NavItem icon={List} label="歷史紀錄" target="list" view={view} setView={setView} setIsSidebarOpen={setIsSidebarOpen} />
                     </nav>
                 </div>
             </div>

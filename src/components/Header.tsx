@@ -6,15 +6,27 @@ import { Menu, Home, ChevronRight, Search } from 'lucide-react';
 interface HeaderProps {
     view: string;
     setIsSidebarOpen: (v: boolean) => void;
+    isDesktopSidebarOpen: boolean;
+    setIsDesktopSidebarOpen: (v: boolean) => void;
 }
 
-export default function Header({ view, setIsSidebarOpen }: HeaderProps) {
+export default function Header({ view, setIsSidebarOpen, isDesktopSidebarOpen, setIsDesktopSidebarOpen }: HeaderProps) {
     return (
-        <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 md:px-8 shrink-0 print-hidden z-10">
+        <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 md:px-8 shrink-0 print-hidden z-10 transition-all duration-300">
             <div className="flex items-center gap-4">
+                {/* 手機版漢堡選單按鈕 */}
                 <button className="lg:hidden p-2 -ml-2 hover:bg-gray-100 rounded-lg text-gray-600" onClick={() => setIsSidebarOpen(true)}>
                     <Menu className="w-6 h-6" />
                 </button>
+                {/* 桌面版漢堡選單切換按鈕 */}
+                <button
+                    className="hidden lg:flex p-2 -ml-2 hover:bg-gray-100 rounded-lg text-gray-600 transition-colors"
+                    onClick={() => setIsDesktopSidebarOpen(!isDesktopSidebarOpen)}
+                    title={isDesktopSidebarOpen ? '收起側邊欄' : '展開側邊欄'}
+                >
+                    <Menu className="w-5 h-5" />
+                </button>
+
                 <div className="hidden md:flex items-center text-sm font-medium text-gray-500">
                     <Home className="w-4 h-4 mr-2" />
                     系統主頁 <ChevronRight className="w-4 h-4 mx-1" />
