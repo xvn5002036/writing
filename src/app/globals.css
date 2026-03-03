@@ -1,0 +1,42 @@
+@import "tailwindcss";
+
+@theme inline {
+  --font-sans: 'Noto Serif TC', serif;
+  /* Tailwind CSS v4 defaults to --font-sans, so Noto Serif TC overrides default texts */
+}
+
+/* 核心背景與字體平滑 */
+body { 
+    font-family: 'Noto Serif TC', serif; 
+    -webkit-font-smoothing: antialiased; 
+    background-color: #f0f2f5;
+}
+
+/* 列印模式專屬設定 - 隱藏所有介面，精確輸出 A4 */
+@media print {
+    @page { size: A4; margin: 0; }
+    body { background: white !important; }
+    .print-hidden { display: none !important; }
+    .print-area { 
+        position: absolute !important; 
+        top: 0 !important; left: 0 !important;
+        width: 210mm !important; height: 297mm !important;
+        transform: none !important; margin: 0 !important; 
+        box-shadow: none !important; padding: 15mm !important;
+        background-color: white !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+}
+
+/* 美化捲軸 */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+
+/* 中文直書排版核心 */
+.writing-v { 
+    writing-mode: vertical-rl; 
+    text-orientation: upright; 
+    letter-spacing: 2px;
+}
